@@ -33,9 +33,11 @@ An intelligent legal research assistant powered by **Claude Opus 4.5** that help
    OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 
-4. **Add PDF Documents** (optional)
-   
-   Place your legal PDF documents in the `data/` folder. A sample case is already included.
+4. **Populate Data** (Optional but Recommended)
+   Run the PDF generator to create initial legal documents (Commercial Courts Act & Arbitration Act):
+   ```bash
+   python generate_pdfs.py
+   ```
 
 5. **Run the application**
    ```bash
@@ -48,32 +50,46 @@ An intelligent legal research assistant powered by **Claude Opus 4.5** that help
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure & File Guide
 
-```
-ai_resarch_pbl/
-├── app.py                 # Main application
-├── requirements.txt       # Python dependencies
-├── .env                   # API key configuration
-├── data/                  # PDF documents folder
-│   └── Case-Test.pdf      # Sample legal case
-├── vector_store/          # Generated embeddings (auto-created)
-├── App.ipynb              # Original Jupyter notebook
-└── README.md              # This file
-```
+This project is organized into modular scripts for data ingestion, processing, and application serving.
+
+### Core Application
+| File | Purpose |
+|------|---------|
+| **`app.py`** | **The Main Application Logic.** <br> • Initializes the RAG (Retrieval-Augmented Generation) pipeline using LangChain. <br> • Loads PDFs from `data/` and chunks them using `RecursiveCharacterTextSplitter`. <br> • Generates embeddings via HuggingFace and stores them in FAISS. <br> • Connects to OpenRouter (Claude Opus 4.5) for answering queries. <br> • Launches the web interface using **Gradio**. |
+| **`.env`** | **Configuration Secrets.** <br> Stores sensitive environment variables like `OPENROUTER_API_KEY` and `GOOGLE_DRIVE_FOLDER_ID`. **Never commit this file to public repositories.** |
+| **`requirements.txt`** | **Dependency List.** <br> Lists all Python libraries required to run the project (e.g., `langchain`, `faiss-cpu`, `gradio`, `google-api-python-client`). |
+
+### Data Management Tools
+| File | Purpose |
+|------|---------|
+| **`drive_sync.py`** | **Google Drive Integration.** <br> Connects to a specified Google Drive folder (via OAuth) and downloads all PDF files to the local `data/` directory. Useful for teams to collaborate on a shared document repository. |
+| **`credentials.json`** | **Google OAuth Credentials.** <br> Contains the Client ID and Client Secret required for `drive_sync.py` to authenticate with Google API. (You must download this from Google Cloud Console). |
+| **`scrape_legal_data.py`** | **Web Scraper.** <br> A utility script designed to fetch official legal PDFs (Acts, Rules, Reports) from government websites. Includes file size validation to prevent corrupted downloads. |
+| **`generate_pdfs.py`** | **Synthetic Data Generator.** <br> A fallback utility that generates valid PDF files containing the full text of key acts (Commercial Courts Act 2015, Arbitration Act 1996) locally. Use this when official download links are broken. |
+
+### Directories
+| Directory | Contents |
+|-----------|----------|
+| **`data/`** | **Document Repository.** <br> Place all your legal PDF files here. The application scans this folder on startup to build the knowledge base. |
+| **`vector_store/`** | **Search Index.** <br> Automatically generated folder where FAISS stores the vector embeddings. Delete this folder to force a complete re-indexing of all documents in `data/`. |
+| **`legal_docs/`** | **Download Staging.** <br> Temporary folder used by `scrape_legal_data.py` to save downloaded files before they are moved to `data/` or uploaded to Drive. |
+
+### Research & Prototyping
+| File | Purpose |
+|------|---------|
+| **`App.ipynb`** | **Jupyter Notebook.** <br> Used for initial experiments, data exploration, and testing the RAG pipeline logic piece-by-piece before deploying it in `app.py`. |
 
 ---
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| **📄 PDF Processing** | Automatically loads and indexes all PDFs from `data/` folder |
-| **🔍 Semantic Search** | FAISS-powered vector search for relevant document chunks |
-| **🤖 Claude Opus 4.5** | State-of-the-art AI for accurate legal analysis |
-| **📚 Source Citations** | Every answer includes page references |
-| **🌐 Web Interface** | Beautiful Gradio chat interface |
-| **📈 Scalable** | Add more PDFs anytime to expand knowledge base |
+- **智能 PDF Analysis**: Automatically reads and understands complex legal documents.
+- **Auto-Indexing**: Just drop a PDF in `data/`, restart, and it's searchable.
+- **Context-Aware Answers**: Uses Claude Opus 4.5 to answer questions *specifically based on the provided documents*, citing page numbers.
+- **Google Drive Sync**: Keep your document library in the cloud and sync it to the engine.
+- **Robust Fallbacks**: Includes tools to generate legal texts if online sources fail.
 
 ---
 
@@ -89,29 +105,31 @@ Try asking:
 
 ## 📈 Adding More Documents
 
+### Option 1: Manual Upload
 1. Add your PDF files to the `data/` folder
 2. Delete the `vector_store/` folder (to rebuild the index)
 3. Restart the application
 
-The system will automatically process and index all new documents.
+### Option 2: Google Drive Sync (Recommended)
+
+1. **Setup**: Fill in `credentials.json` with your Google Cloud Client ID/Secret.
+2. **Configure**: Add `GOOGLE_DRIVE_FOLDER_ID` to `.env`.
+3. **Sync**: Run `python drive_sync.py` to download files.
+4. **Run**: Start `python app.py`.
 
 ---
 
 ## 🔧 Configuration
 
 ### Change the LLM Model
-
-Edit `app.py` line 43 to use a different model:
+Edit `app.py`:
 ```python
-MODEL_NAME = "anthropic/claude-opus-4.5"  # Current model
-# Other options:
-# MODEL_NAME = "anthropic/claude-sonnet-4"
-# MODEL_NAME = "meta-llama/llama-3.1-8b-instruct:free"  # Free option
+MODEL_NAME = "anthropic/claude-opus-4.5"
+# Alternatives: "meta-llama/llama-3-70b-instruct", "google/gemini-pro"
 ```
 
-### Adjust Chunk Size
-
-For longer documents, you may want to adjust chunking in `app.py`:
+### Adjust Chunking
+For better context on long documents, tweak in `app.py`:
 ```python
 CHUNK_SIZE = 1000      # Characters per chunk
 CHUNK_OVERLAP = 200    # Overlap between chunks
@@ -121,30 +139,14 @@ CHUNK_OVERLAP = 200    # Overlap between chunks
 
 ## 🛠️ Tech Stack
 
-- **LangChain** - Document processing and retrieval chains
-- **FAISS** - Vector similarity search
-- **HuggingFace** - Sentence embeddings (`all-MiniLM-L6-v2`)
-- **OpenRouter** - LLM API gateway (Claude Opus 4.5)
-- **Gradio** - Web interface
-- **PyPDF** - PDF document loading
-
----
-
-## 👨‍💼 Target Users
-
-- **Lawyers** - Research case law and precedents
-- **Judges** - Quick reference to relevant cases
-- **Legal Researchers** - Analyze commercial court documents
-- **Law Students** - Study and understand legal concepts
+- **LangChain**: Architecture for RAG framework.
+- **FAISS**: High-performance vector similarity search.
+- **HuggingFace**: `all-MiniLM-L6-v2` for sentence embeddings.
+- **OpenRouter**: Unified API for accessing top-tier LLMs.
+- **Gradio**: Rapid UI development for ML apps.
 
 ---
 
 ## 📝 License
 
 This project is open source and available under the MIT License.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to submit issues and pull requests.
