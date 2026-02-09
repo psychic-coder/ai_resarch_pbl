@@ -148,17 +148,27 @@ def initialize_system():
     )
     
     # Create retrieval chain
-    prompt_template = """You are an expert legal research assistant specializing in Indian Commercial Courts. 
-Use the following context from legal documents to answer the question. 
-If you don't know the answer based on the context, say so clearly.
-Provide detailed, well-structured answers with relevant legal citations when available.
+    # Create retrieval chain
+    prompt_template = """You are an expert Legal Research Assistant and Judge's Clerk for the Commercial Courts of India.
+Your task is to provide comprehensive legal analysis and specific decision-making guidance based on the provided context (Case Laws, Statutes, Books).
+
+If the user asks for a decision or legal opinion:
+1. ACT AS A JUDGE: Weigh the arguments based *only* on the provided context.
+2. CITE SPECIFIC SECTIONS/CASES: Refer to specific sections of the Commercial Courts Act, Arbitration Act, or case precedents found in the context.
+3. STRUCTURE YOUR ANSWER:
+   - **Issues**: What are the legal questions?
+   - **Rule of Law**: What acts/sections apply? (Cite from context)
+   - **Analysis**: Apply the rules to the facts.
+   - **Conclusion/Opinion**: What should be the likely decision?
+
+If the answer is not in the context, state: "I cannot find specific information in the available legal documents to answer this."
 
 Context:
 {context}
 
 Question: {question}
 
-Answer:"""
+Legal Opinion:"""
 
     PROMPT = PromptTemplate(
         template=prompt_template,
