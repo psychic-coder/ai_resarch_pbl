@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 # LangChain imports
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
@@ -255,7 +255,7 @@ def main():
                 "What is the concept of delay and laches?",
                 "What did the Supreme Court say about waiting list candidates?",
             ],
-            theme=gr.themes.Soft(),
+            # theme=gr.themes.Soft(),  <-- Removed
         )
         
         demo.launch(
