@@ -30,7 +30,7 @@ VECTOR_STORE_DIR = Path("vector_store")
 CHUNK_SIZE       = 600      # Smaller = more precise retrieval hits
 CHUNK_OVERLAP    = 150
 OLLAMA_BASE_URL  = os.getenv("OLLAMA_BASE_URL",    "http://localhost:11434")
-MODEL_NAME       = os.getenv("OLLAMA_MODEL",       "phi3:mini")
+MODEL_NAME       = os.getenv("OLLAMA_MODEL",       "phi3-legal")
 EMBED_MODEL_NAME = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -115,17 +115,9 @@ def initialize_system():
         num_ctx=4096,
     )
 
-    # Strict grounding prompt: structured legal output format
+    # The strict legal persona and formatting (ISSUES/LAW/ANALYSIS/CONCLUSION)
+    # are now permanently baked into the phi3-legal model itself via the Modelfile.
     prompt = PromptTemplate.from_template(
-        "You are a precise Legal Research Assistant for the Commercial Courts of India.\n"
-        "Use ONLY the context passages below. Never invent facts or section numbers.\n\n"
-        "Format your answer as:\n"
-        "ISSUES: State the legal question(s).\n"
-        "APPLICABLE LAW: Cite exact act/section/case from the context.\n"
-        "ANALYSIS: Apply law to facts step by step.\n"
-        "CONCLUSION: Clear, reasoned decision.\n\n"
-        "If you cannot find relevant information in the context say:\n"
-        "I cannot find specific information in the available legal documents.\n\n"
         "Context:\n{context}\n\n"
         "Question: {question}\n\n"
         "Legal Opinion:"
