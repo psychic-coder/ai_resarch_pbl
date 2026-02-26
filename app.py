@@ -186,15 +186,15 @@ def main():
             description=(
                 "Ask questions about commercial court cases and legal documents.\n\n"
                 "Examples:\n"
-                "- Summarise the facts of this case.\n"
-                "- What legal sections were cited?\n"
-                "- What was the court's final order?\n\n"
+                "- What are the core factual disputes between the parties in this case?\n"
+                "- Identify the primary legal statutes and case precedents relied upon by the court.\n"
+                "- What is the court's final ruling and the reasoning behind it?\n\n"
                 "Tip: Add more PDFs to the data/ folder and restart to expand the knowledge base."
             ),
             examples=[
-                "Summarise the facts of this case.",
-                "What legal sections were cited?",
-                "What was the final order of the court?",
+                "What are the core factual disputes between the parties in this case?",
+                "Identify the primary legal statutes and case precedents relied upon by the court.",
+                "What is the court's final ruling and the reasoning behind it?",
             ],
         )
         demo.launch(server_name="0.0.0.0", server_port=7861, share=True)
