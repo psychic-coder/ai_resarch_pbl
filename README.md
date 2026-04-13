@@ -202,12 +202,7 @@ PDF Files (data/)
 | `No PDFs in data/` | Add PDFs to `data/` or run `python generate_pdfs.py` |
 | `ModuleNotFoundError` | Activate venv: `source venv/bin/activate`, then `pip install -r requirements.txt` |
 
----
 
-
-
-# 🏛️ AI-Driven Research Engine for Commercial Courts
-### Complete Project Documentation
 
 ---
 
