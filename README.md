@@ -1,149 +1,206 @@
 # 🏛️ AI-Driven Research Engine for Commercial Courts
 
-An intelligent legal research assistant powered by **Claude Opus 4.5** that helps lawyers, judges, and legal professionals quickly search and analyze commercial court cases.
+An intelligent legal research assistant that runs **100% locally** using [Ollama](https://ollama.com). No API keys or internet connection required after setup. Ask questions about commercial court cases and get structured legal opinions with cited sources.
 
-[![Explore the Demo](https://img.shields.io/badge/Explore%20the%20Demo%20-%E2%9C%94-green)](https://huggingface.co/spaces/hemanthkarthick03/Research-Agent-of-Commercial-Courts)
+---
+
+## ⚙️ Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+| Requirement | Version | Download |
+|---|---|---|
+| **Python** | 3.9+ | [python.org](https://www.python.org/downloads/) |
+| **Ollama** | Latest | [ollama.com](https://ollama.com/) |
+
+> **macOS users:** If `python3` isn't found, install it via Homebrew: `brew install python3`
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Step 1 — Clone the Repository
 
-- **Python 3.9+** installed
-- **OpenRouter API Key** (free at [openrouter.ai/keys](https://openrouter.ai/keys))
+```bash
+git clone https://github.com/psychic-coder/ai_resarch_pbl.git
+cd ai_resarch_pbl
+```
 
-### Installation
+### Step 2 — Start Ollama
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/psychic-coder/ai_resarch_pbl.git
-   cd ai_resarch_pbl
-   ```
+Open the **Ollama app** from your Applications folder, or run:
 
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+ollama serve
+```
 
-3. **Configure API Key**
-   
-   Edit the `.env` file and add your OpenRouter API key:
-   ```
-   OPENROUTER_API_KEY=your_openrouter_api_key_here
-   ```
+### Step 3 — Pull the Required Models
 
-4. **Populate Data** (Optional but Recommended)
-   Run the PDF generator to create initial legal documents (Commercial Courts Act & Arbitration Act):
-   ```bash
-   python generate_pdfs.py
-   ```
+```bash
+# Embedding model (for vector search)
+ollama pull mxbai-embed-large
 
-5. **Run the application**
-   ```bash
-   python3 app.py
-   ```
+# Base LLM
+ollama pull phi3:mini
+```
 
-6. **Open in browser**
-   
-   Navigate to: **http://localhost:7861**
+### Step 4 — Create the Custom Legal Model
 
----
+This builds a fine-tuned persona on top of `phi3:mini` using the included `Modelfile`:
 
-## 📁 Project Structure & File Guide
+```bash
+ollama create phi3-legal -f Modelfile
+```
 
-This project is organized into modular scripts for data ingestion, processing, and application serving.
+You should see `success` at the end.
 
-### Core Application
-| File | Purpose |
-|------|---------|
-| **`app.py`** | **The Main Application Logic.** <br> • Initializes the RAG (Retrieval-Augmented Generation) pipeline using LangChain. <br> • Loads PDFs from `data/` and chunks them using `RecursiveCharacterTextSplitter`. <br> • Generates embeddings via HuggingFace and stores them in FAISS. <br> • Connects to OpenRouter (Claude Opus 4.5) for answering queries. <br> • Launches the web interface using **Gradio**. |
-| **`.env`** | **Configuration Secrets.** <br> Stores sensitive environment variables like `OPENROUTER_API_KEY` and `GOOGLE_DRIVE_FOLDER_ID`. **Never commit this file to public repositories.** |
-| **`requirements.txt`** | **Dependency List.** <br> Lists all Python libraries required to run the project (e.g., `langchain`, `faiss-cpu`, `gradio`, `google-api-python-client`). |
+### Step 5 — Set Up Python Environment
 
-### Data Management Tools
-| File | Purpose |
-|------|---------|
-| **`drive_sync.py`** | **Google Drive Integration.** <br> Connects to a specified Google Drive folder (via OAuth) and downloads all PDF files to the local `data/` directory. Useful for teams to collaborate on a shared document repository. |
-| **`credentials.json`** | **Google OAuth Credentials.** <br> Contains the Client ID and Client Secret required for `drive_sync.py` to authenticate with Google API. (You must download this from Google Cloud Console). |
-| **`scrape_legal_data.py`** | **Web Scraper.** <br> A utility script designed to fetch official legal PDFs (Acts, Rules, Reports) from government websites. Includes file size validation to prevent corrupted downloads. |
-| **`generate_pdfs.py`** | **Synthetic Data Generator.** <br> A fallback utility that generates valid PDF files containing the full text of key acts (Commercial Courts Act 2015, Arbitration Act 1996) locally. Use this when official download links are broken. |
+```bash
+# Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate       # On Windows: venv\Scripts\activate
 
-### Directories
-| Directory | Contents |
-|-----------|----------|
-| **`data/`** | **Document Repository.** <br> Place all your legal PDF files here. The application scans this folder on startup to build the knowledge base. |
-| **`vector_store/`** | **Search Index.** <br> Automatically generated folder where FAISS stores the vector embeddings. Delete this folder to force a complete re-indexing of all documents in `data/`. |
-| **`legal_docs/`** | **Download Staging.** <br> Temporary folder used by `scrape_legal_data.py` to save downloaded files before they are moved to `data/` or uploaded to Drive. |
+# Install all dependencies
+pip install -r requirements.txt
+```
 
-### Research & Prototyping
-| File | Purpose |
-|------|---------|
-| **`App.ipynb`** | **Jupyter Notebook.** <br> Used for initial experiments, data exploration, and testing the RAG pipeline logic piece-by-piece before deploying it in `app.py`. |
+### Step 6 — Add Legal Documents
 
----
+Place your PDF files into the `data/` folder. The app will automatically index them on first launch.
 
-## ✨ Features
+> **No PDFs?** Run the built-in generator to create sample legal texts:
+> ```bash
+> python generate_pdfs.py
+> ```
 
-- **智能 PDF Analysis**: Automatically reads and understands complex legal documents.
-- **Auto-Indexing**: Just drop a PDF in `data/`, restart, and it's searchable.
-- **Context-Aware Answers**: Uses Claude Opus 4.5 to answer questions *specifically based on the provided documents*, citing page numbers.
-- **Google Drive Sync**: Keep your document library in the cloud and sync it to the engine.
-- **Robust Fallbacks**: Includes tools to generate legal texts if online sources fail.
+### Step 7 — Run the Application
+
+```bash
+python app.py
+```
+
+Then open your browser at: **http://localhost:7862**
+
+A public shareable link will also be printed in the terminal (powered by Gradio).
 
 ---
 
 ## 💬 Example Queries
 
-Try asking:
-- "What was the case of Manoj Kumar Pandey about?"
-- "What does the Constitution say about right to appointment?"
-- "Explain the concept of delay and laches in filing petitions"
-- "What did the Supreme Court say about waiting list candidates?"
+Once running, try asking:
+
+- *"What are the core factual disputes between the parties in this case?"*
+- *"Identify the primary legal statutes and case precedents relied upon by the court."*
+- *"What is the court's final ruling and the reasoning behind it?"*
+- *"Explain the concept of delay and laches in filing petitions."*
 
 ---
 
-## 📈 Adding More Documents
+## 📁 Project Structure
 
-### Option 1: Manual Upload
-1. Add your PDF files to the `data/` folder
-2. Delete the `vector_store/` folder (to rebuild the index)
-3. Restart the application
-
-### Option 2: Google Drive Sync (Recommended)
-
-1. **Setup**: Fill in `credentials.json` with your Google Cloud Client ID/Secret.
-2. **Configure**: Add `GOOGLE_DRIVE_FOLDER_ID` to `.env`.
-3. **Sync**: Run `python drive_sync.py` to download files.
-4. **Run**: Start `python app.py`.
-
----
-
-## 🔧 Configuration
-
-### Change the LLM Model
-Edit `app.py`:
-```python
-MODEL_NAME = "anthropic/claude-opus-4.5"
-# Alternatives: "meta-llama/llama-3-70b-instruct", "google/gemini-pro"
 ```
-
-### Adjust Chunking
-For better context on long documents, tweak in `app.py`:
-```python
-CHUNK_SIZE = 1000      # Characters per chunk
-CHUNK_OVERLAP = 200    # Overlap between chunks
+ai_resarch_pbl/
+├── app.py                  # Main application (RAG pipeline + Gradio UI)
+├── Modelfile               # Custom phi3-legal model definition
+├── requirements.txt        # Python dependencies
+├── .env                    # Optional environment variable overrides
+├── data/                   # 📂 Place your PDF files here
+├── vector_store/           # Auto-generated FAISS index (do not edit)
+├── generate_pdfs.py        # Generates sample legal PDFs if data/ is empty
+├── generate_legal_book.py  # Generates extended legal reference PDFs
+├── scrape_legal_data.py    # Scrapes official legal PDFs from gov websites
+├── drive_sync.py           # Syncs PDFs from a shared Google Drive folder
+├── credentials.json        # Google OAuth credentials (for Drive sync only)
+├── App.ipynb               # Jupyter notebook for experiments
+└── Model_Evaluation.ipynb  # RAG evaluation and performance metrics
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **LangChain**: Architecture for RAG framework.
-- **FAISS**: High-performance vector similarity search.
-- **HuggingFace**: `all-MiniLM-L6-v2` for sentence embeddings.
-- **OpenRouter**: Unified API for accessing top-tier LLMs.
-- **Gradio**: Rapid UI development for ML apps.
+| Component | Technology |
+|---|---|
+| **LLM** | `phi3-legal` (custom Ollama model built on `phi3:mini`) |
+| **Embeddings** | `mxbai-embed-large` via Ollama |
+| **RAG Framework** | LangChain (LCEL) |
+| **Vector Store** | FAISS (local) |
+| **UI** | Gradio |
+| **PDF Parsing** | PyPDF |
+
+---
+
+## 🔧 Configuration
+
+You can override defaults by editing the `.env` file:
+
+```env
+OLLAMA_BASE_URL=http://localhost:11434   # Ollama server address
+OLLAMA_MODEL=phi3-legal                  # LLM model name
+OLLAMA_EMBED_MODEL=mxbai-embed-large     # Embedding model name
+```
+
+Or adjust chunking behaviour directly in `app.py`:
+
+```python
+CHUNK_SIZE    = 600   # Characters per chunk
+CHUNK_OVERLAP = 150   # Overlap between chunks
+```
+
+---
+
+## 📈 Adding More Documents
+
+1. Add PDF files to the `data/` folder
+2. Delete the `vector_store/` directory (forces a re-index):
+   ```bash
+   rm -rf vector_store/
+   ```
+3. Restart the app: `python app.py`
+
+### Optional: Google Drive Sync
+
+If your team stores PDFs in Google Drive:
+
+1. Download `credentials.json` from [Google Cloud Console](https://console.cloud.google.com/)
+2. Add `GOOGLE_DRIVE_FOLDER_ID=your_folder_id` to `.env`
+3. Run: `python drive_sync.py`
+4. Then start the app: `python app.py`
+
+---
+
+## 🧠 How It Works
+
+```
+PDF Files (data/)
+      │
+      ▼
+  PyPDFLoader → RecursiveCharacterTextSplitter (600-char chunks)
+      │
+      ▼
+  mxbai-embed-large (Ollama) → FAISS Vector Store
+      │
+      ▼
+  User Query → MMR Retrieval (top-6 of 20 candidates)
+      │
+      ▼
+  phi3-legal (Ollama) → Structured Legal Opinion
+  [ISSUES / APPLICABLE LAW / ANALYSIS / CONCLUSION]
+```
+
+---
+
+## 🐛 Troubleshooting
+
+| Error | Fix |
+|---|---|
+| `Cannot reach Ollama` | Open the Ollama app or run `ollama serve` |
+| `model "mxbai-embed-large" not found` | Run `ollama pull mxbai-embed-large` |
+| `model "phi3-legal" not found` | Run `ollama create phi3-legal -f Modelfile` |
+| `Address already in use` (port 7862) | Kill old process: `lsof -ti:7862 \| xargs kill` |
+| `No PDFs in data/` | Add PDFs to `data/` or run `python generate_pdfs.py` |
+| `ModuleNotFoundError` | Activate venv: `source venv/bin/activate`, then `pip install -r requirements.txt` |
 
 ---
 

@@ -197,7 +197,7 @@ def main():
                 "What is the court's final ruling and the reasoning behind it?",
             ],
         )
-        demo.launch(server_name="0.0.0.0", server_port=7861, share=True)
+        demo.launch(server_name="0.0.0.0", server_port=7862, share=True)
     except Exception as e:
         print(f"\nFailed to start: {e}")
         raise
